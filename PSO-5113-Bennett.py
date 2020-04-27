@@ -55,16 +55,6 @@ def evaluate(x):
 pos = [[] for _ in range(swarmSize)]      #position of particles -- will be a list of lists; e.g., for a 2D problem with 3 particles: [[17,4],[-100,2],[87,-1.2]]
 vel = [[] for _ in range(swarmSize)]      #velocity of particles -- will be a list of lists similar to the "pos" object 
 
-# Initialize starting positions and velocities of swarm
-def initialize_swarm():
-
-    for i in range(swarmSize):
-        for j in range(dimensions):
-            pos[i].append(myPRNG.uniform(lowerBound,upperBound)) # Fill lists with random values
-            vel[i].append(myPRNG.uniform(lowerBound,upperBound))
-    
-    return pos,vel
-
 
 #note: pos[0] and vel[0] provides the position and velocity of particle 0; pos[1] and vel[1] provides the position and velocity of particle 1; and so on. 
 
@@ -90,11 +80,14 @@ pBestVal = curValue[:]  # initialize pbest to the starting position
 #e.g., velocity update function; velocity max limitations; position updates; dealing with infeasible space; identifying the global best; main loop, stopping criterion, etc. 
 
 
+# Update     
+def update_velocity(v):
     
-def update_velocity():
+   # Going through and updating velocities in vel list
+   for i in range(v):
+       
 
-
-    return something        
+    return v        
 
                                                               
 
