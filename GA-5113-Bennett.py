@@ -174,11 +174,12 @@ def insert(pop,kids):
 
     # Want a population of PopSize, currently only taking best among kids and parents
     gene_pool = pop + kids
-    ranking = rankOrder(pop + kids) # Make big list of both in order of fitness
-   # for i in range(populationSize):
-        
+    gene_pool.sort(ey=lambda x: x[1])
+    best = []
+    for i in range(populationSize): # Will append only the top of both kids and parents
+        best.append(gene_pool[i])
     
-    return kids
+    return best
     
 #perform a simple summary on the population: returns the best chromosome fitness, the average population fitness, and the variance of the population fitness
 def summaryFitness(pop):
