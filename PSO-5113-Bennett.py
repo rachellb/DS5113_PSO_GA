@@ -31,6 +31,8 @@ dimensions = 2
 swarmSize = 5
 
 
+vmax = 0 # need to find out a best vmax
+
 # The Acceleration Constants, currently set to 2
 psi1 = 2  
 psi2 = 2
@@ -114,6 +116,12 @@ def move():
     e3 = np.add(e1,e2)                          #psi1*r1(Pi - Xi) + psi2*r2(Pg-Xi)
     
     vel = np.add(vel,e3)
+    
+    for i in vel:           # Making sure velocity never goes above or below |vmax|
+        if vel[i] > vmax:
+            vel[i] = vmax
+        if vel[i] < -vmax:
+            vel[i] = -vmax
    
     pos = np.add(pos, vel)
        

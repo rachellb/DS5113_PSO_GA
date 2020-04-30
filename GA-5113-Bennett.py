@@ -25,7 +25,7 @@ dimensions = 2    #set dimensions for Schwefel Function search space (should eit
 populationSize = 6 #size of GA population
 Generations = 100   #number of GA generations
 
-crossOverRate = 0.8  #currently not used in the implementation; neeeds to be used.
+crossOverRate = 1  #currently set to always crossover
 mutationRate = 0.2   #currently not used in the implementation; neeeds to be used.
 
 
@@ -147,7 +147,13 @@ def breeding(matingPool):
     children = []
     childrenFitness = []
     for i in range(0,populationSize-1,2):
-        child1,child2=crossover(matingPool[i],matingPool[i+1])
+        
+        p = myPRNG.uniform(0,1)
+        if p < crossOverRate:
+            child1,child2=crossover(matingPool[i],matingPool[i+1])
+        else:
+            child1 = matingPool[i]
+            child2 = matingPool[i+1]
         
         child1=mutate(child1)
         child2=mutate(child2)
@@ -174,7 +180,7 @@ def insert(pop,kids):
 
     # Want a population of PopSize, currently only taking best among kids and parents
     gene_pool = pop + kids
-    gene_pool.sort(ey=lambda x: x[1])
+    gene_pool.sort(key=lambda x: x[1])
     best = []
     for i in range(populationSize): # Will append only the top of both kids and parents
         best.append(gene_pool[i])
@@ -196,22 +202,28 @@ def bestSolutionInPopulation(pop):
 #f = open('out.txt', 'w')  #---uncomment this line to create a file for saving output
     
 #GA main code
-Population = initializePopulation()
-
-for j in range(Generations):
-    mates=tournamentSelection(Population,3)
-    Offspring = breeding(mates)
-    Population = insert(Population, Offspring)
-
-    #end of GA main code
+def GA(crossover,mutation,popsize):
+    populationSize = popsize #size of GA population
+    crossOverRate = crossover  #currently set to always crossover
+    mutationRate = mutation   #currently not used in the implementation; neeeds to be used.
     
-    minVal,meanVal,varVal=summaryFitness(Population)  #check out the population at each generation
-    print(summaryFitness(Population))                 #print to screen; turn this off for faster results
     
-    #f.write(str(minVal) + " " + str(meanVal) + " " + str(varVal) + "\n")  #---uncomment this line to write to  file
+    Population = initializePopulation()
     
-#f.close()   #---uncomment this line to close the file for saving output
-
-print (summaryFitness(Population))
-bestSolutionInPopulation(Population)
+    for j in range(Generations):
+        mates=tournamentSelection(Population,3)
+        Offspring = breeding(mates)
+        Population = insert(Population, Offspring)
+    
+        #end of GA main code
+        
+        minVal,meanVal,varVal=summaryFitness(Population)  #check out the population at each generation
+        print(summaryFitness(Population))                 #print to screen; turn this off for faster results
+        
+        #f.write(str(minVal) + " " + str(meanVal) + " " + str(varVal) + "\n")  #---uncomment this line to write to  file
+        
+    #f.close()   #---uncomment this line to close the file for saving output
+    
+    print (summaryFitness(Population))
+    bestSolutionInPopulation(Population)
 
