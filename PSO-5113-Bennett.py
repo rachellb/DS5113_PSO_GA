@@ -8,6 +8,8 @@ import copy
 import math
 from random import Random
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 #to setup a random number generator, we will specify a "seed" value
 seed = 12345
@@ -25,17 +27,16 @@ upperBound = 500   #bounds for Schwefel Function search space
 #note: for the more experienced Python programmers, you might want to consider taking a more object-oriented approach to the PSO implementation, i.e.: a particle class with methods to initialize itself, and update its own velocity and position; a swarm class with a method to iterates through all particles to call update functions, etc.
 
 #number of dimensions of problem
-dimensions = 2
+dimensions = 200
 
 #number of particles in swarm
 swarmSize = 5
 
-
-vmax = 0 # need to find out a best vmax
+vmax = 100
 
 # The Acceleration Constants, currently set to 2
-psi1 = 2  
-psi2 = 2
+phi1 = 1  # The cognitive (particle dependent) portion
+phi2 = 3  # The social (swarm dependent) portion
     
 #Schwefel function to evaluate a real-valued solution x    
 # note: the feasible space is an n-dimensional hypercube centered at the origin with side length = 2 * 500
@@ -93,8 +94,8 @@ pBestGlobal = pos[0]    # initialize global best to first position
 # updates velocity and position 
 def move():
     
-    global vel # So I can update vel within the function
-    global pos 
+    global vel # So I can update velocity within the function
+    global pos # For updating position
     
     # Find out where the best value is currently
     ordering = rankOrder(pBestVal)
@@ -107,47 +108,92 @@ def move():
     r1 = myPRNG.uniform(0,1)
     r2 = myPRNG.uniform(0,1)
     
-    # Equation: v = v + psi1*r1(Pi - Xi) + psi2*r2(Pg-Xi)
+    # Equation: v = v + phi1*r1(Pi - Xi) + phi2*r2(Pg-Xi)
     
-    e1 = psi1*r1*(np.subtract(best,pos))        #psi1*r1(Pi - Xi)
-    e2 = psi2*r2*(np.subtract(pBestGlobal,pos)) #psi2*r2(Pg-Xi)
+    # The equation is broken up into 3 parts for ease of coding
+    e1 = phi1*r1*(np.subtract(best,pos))        #phi1*r1(Pi - Xi)
+    e2 = phi2*r2*(np.subtract(pBestGlobal,pos)) #phi2*r2(Pg-Xi)
+    e3 = np.add(e1,e2)                          #phi1*r1(Pi - Xi) + phi2*r2(Pg-Xi)
     
-    
-    e3 = np.add(e1,e2)                          #psi1*r1(Pi - Xi) + psi2*r2(Pg-Xi)
-    
+    # Updating the velocity
     vel = np.add(vel,e3)
     
-    for i in vel:           # Making sure velocity never goes above or below |vmax|
-        if vel[i] > vmax:
-            vel[i] = vmax
-        if vel[i] < -vmax:
-            vel[i] = -vmax
+    for i in range(len(vel)):           # Making sure velocity never goes above or below |vmax|
+        for j in range(len(vel[i])):
+            if vel[i][j] > vmax:
+                vel[i][j] = vmax
+            if vel[i][j] < -vmax:
+                vel[i][j] = -vmax
    
+    #Updating the position
     pos = np.add(pos, vel)
+    
+    # Need to deal with infeasibility. What about Torus? Then wouldn't need to mess with velocity
+    # Should wrap around to the other side of the screen
+    for i in range(len(pos)):
+        for j in range(len(pos[i])):
+            if pos[i][j] > upperBound:
+                pos[i][j] = lowerBound + (pos[i][j]-upperBound)
+            if pos[i][j] < lowerBound:
+                pos[i][j] = upperBound + (pos[i][j]+upperBound)
+            
+    
        
 # General code loop ---------------------------------------
 
-something = 0 # Stopping criterion, will fill in later
+# Step 1 Initialize the swarm (done higher up)
 
-while something:                                                              
+
+
+
+iterations = 0
+while iterations < 3000:                                                              
     
-    # Now I need to update the velocity and positions
-    move()
     
-    # I have to evaluate the positions and update pBest and pBestVal if they're better
-    for i in pos:
-        if evaluate(pos[i]) < pBestVal[i]: # Minimization problem
+    # Step 2 Evaluate fitness of each particle
+    # Step 3(a) Evaluate individual best and update
+    for i in range(len(pos)):
+        if evaluate(pos[i]) < pBestVal[i]:       # Minimization problem
             pBest[i] = list(pos[i])              # Copy this position into pBest
-            pBestVal[i] = list(evaluate(pos[i])) # Copy the value into pBestVal
+            pBestVal[i] = evaluate(pos[i]) # Copy the value into pBestVal
             
     
-    # Now the same for the global best
-    for i in pBestVal:
+    # Step 3(b) Update global best
+    for i in range(len(pBestVal)):
         if pBestVal[i] <  evaluate(pBestGlobal):
             pBestGlobal = list(pBest[i])
+
+    # Functions for plotting initial position and location after first move
+    """
+    if iterations == 0 or iterations == 1:  
+        x = []
+        y = []
+        for i in range(len(pos)):
+            x.append(pos[i][0])
+            y.append(pos[i][1])
+        
+        if iterations == 0: 
+            plt.title("Initial location")
+        else:
+            plt.title("After first move")
+        plt.ylabel("y")
+        plt.xlabel("x")
+        plt.scatter(x,y)
+        plt.show()
+    """
+    
+    # Step 4 Update velocity and position of each particle
+    move()
+    
+    
+    
+    
+    # Stopping criterion is number of iterations
+    iterations = iterations + 1
+        
     
     # Maybe stopping criterion can be if 90% of particles < 1 standard deviation away from mean, stop?
 
-
-
+print("Best Value is: ")
+print(evaluate(pBestGlobal))
 
