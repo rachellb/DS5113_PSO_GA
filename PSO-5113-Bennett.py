@@ -30,7 +30,7 @@ upperBound = 500   #bounds for Schwefel Function search space
 dimensions = 200
 
 #number of particles in swarm
-swarmSize = 5
+swarmSize = 100
 
 vmax = 100
 
@@ -86,9 +86,29 @@ for i in range(swarmSize):
 pBest = pos[:]          # initialize pbest to the starting position
 pBestVal = curValue[:]  # initialize pbest to the starting position
 pBestGlobal = pos[0]    # initialize global best to first position
-
+pBestLocal = list(pos) # Initializing to best being initial positions
 #Currently missing several elements
 #e.g., velocity update function; velocity max limitations; position updates; dealing with infeasible space; identifying the global best; main loop, stopping criterion, etc. 
+
+def ring():
+    
+    global pBestLocal
+    
+    # The modulus allows for wrapping (so the first item is neighbors with last)
+    # Currently uses 3 if statements to check which among neighbors is best. 
+    # 
+    
+    for i in range(len(pBestVal)):
+       if pBestVal[(i-1)%len(pBestVal)] < evaluate(pBestLocal[i]):
+           pBestLocal[i] = list(pos[(i-1)%len(pBestVal)])
+       if pBestVal[i] < evaluate(pBestLocal[i]):
+           pBestLocal[i] = list(pos[i])
+       if pBestVal[(i+1)%len(pBestVal)] < evaluate(pBestLocal[i]):
+           pBestLocal[i] = list(pos[(i+1)%len(pos)])
+       
+    
+
+        
 
 
 # updates velocity and position 
@@ -110,13 +130,18 @@ def move():
     
     # Equation: v = v + phi1*r1(Pi - Xi) + phi2*r2(Pg-Xi)
     
+    
     # The equation is broken up into 3 parts for ease of coding
     e1 = phi1*r1*(np.subtract(best,pos))        #phi1*r1(Pi - Xi)
-    e2 = phi2*r2*(np.subtract(pBestGlobal,pos)) #phi2*r2(Pg-Xi)
+    #e2 = phi2*r2*(np.subtract(pBestGlobal,pos)) #phi2*r2(Pg-Xi)
+    ring()
+    e2 = phi2*r2*(np.subtract(pBestLocal,pos)) #phi2*r2(Pg-Xi) # For local neiborhood structure
     e3 = np.add(e1,e2)                          #phi1*r1(Pi - Xi) + phi2*r2(Pg-Xi)
     
     # Updating the velocity
     vel = np.add(vel,e3)
+    
+    
     
     for i in range(len(vel)):           # Making sure velocity never goes above or below |vmax|
         for j in range(len(vel[i])):
@@ -147,7 +172,7 @@ def move():
 
 
 iterations = 0
-while iterations < 3000:                                                              
+while iterations < 300:                                                              
     
     
     # Step 2 Evaluate fitness of each particle
@@ -157,6 +182,7 @@ while iterations < 3000:
             pBest[i] = list(pos[i])              # Copy this position into pBest
             pBestVal[i] = evaluate(pos[i]) # Copy the value into pBestVal
             
+    
     
     # Step 3(b) Update global best
     for i in range(len(pBestVal)):
@@ -184,8 +210,6 @@ while iterations < 3000:
     
     # Step 4 Update velocity and position of each particle
     move()
-    
-    
     
     
     # Stopping criterion is number of iterations
