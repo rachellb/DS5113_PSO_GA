@@ -7,6 +7,8 @@ import copy
 import math
 from random import Random
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 #to setup a random number generator, we will specify a "seed" value
 seed = 5113
@@ -20,13 +22,13 @@ upperBound = 500   #bounds for Schwefel Function search space
 #Student name(s):
 #Date:
 
-dimensions = 2    #set dimensions for Schwefel Function search space (should either be 2 or 200 for HM #5)
+#dimensions = 2    #set dimensions for Schwefel Function search space (should either be 2 or 200 for HM #5)
 
-populationSize = 6 #size of GA population
-Generations = 100   #number of GA generations
+#populationSize = 6 #size of GA population
+#Generations = 100   #number of GA generations
 
-crossOverRate = 1  #currently set to always crossover
-mutationRate = 0.2   #currently not used in the implementation; neeeds to be used.
+#crossOverRate = 0.8  #currently set to always crossover
+#mutationRate = 0.4   #currently not used in the implementation; neeeds to be used.
 
 
 #create an continuous valued chromosome 
@@ -202,15 +204,44 @@ def bestSolutionInPopulation(pop):
 #f = open('out.txt', 'w')  #---uncomment this line to create a file for saving output
     
 #GA main code
-def GA(crossover,mutation,popsize):
+def GA(d, crossover,mutation,popsize, g):
+    global populationSize
+    global crossOverRate
+    global mutationRate
+    global dimensions 
+    
     populationSize = popsize #size of GA population
     crossOverRate = crossover  #currently set to always crossover
     mutationRate = mutation   #currently not used in the implementation; neeeds to be used.
-    
+    dimensions = d
+    Generations = g
+    iterations = 0
     
     Population = initializePopulation()
     
     for j in range(Generations):
+        
+        if iterations < 3 and dimensions == 2:
+            x = []
+            y = []
+            for i in range(len(Population)):
+                x.append(Population[i][0][0])
+                y.append(Population[i][0][1])
+            
+            if iterations == 0:
+                plt.title("Initial Generation")
+            elif iterations == 1:
+                plt.title("First Generation")
+            else:
+                plt.title("Second Generation")
+                
+            plt.axhline(linewidth=1, color='grey')
+            plt.axvline(linewidth=1, color='grey')
+            plt.ylabel("y")
+            plt.xlabel("x")
+            plt.scatter(x,y)
+            plt.show()
+            
         mates=tournamentSelection(Population,3)
         Offspring = breeding(mates)
         Population = insert(Population, Offspring)
@@ -220,10 +251,19 @@ def GA(crossover,mutation,popsize):
         minVal,meanVal,varVal=summaryFitness(Population)  #check out the population at each generation
         print(summaryFitness(Population))                 #print to screen; turn this off for faster results
         
+      
+        iterations = iterations + 1
+    
+        
         #f.write(str(minVal) + " " + str(meanVal) + " " + str(varVal) + "\n")  #---uncomment this line to write to  file
         
     #f.close()   #---uncomment this line to close the file for saving output
     
     print (summaryFitness(Population))
+    print("Best solution ") 
     bestSolutionInPopulation(Population)
+    
+
+GA(2, 0.9, 0.15, 6, 100)
+
 

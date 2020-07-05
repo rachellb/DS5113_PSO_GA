@@ -27,10 +27,10 @@ upperBound = 500   #bounds for Schwefel Function search space
 #note: for the more experienced Python programmers, you might want to consider taking a more object-oriented approach to the PSO implementation, i.e.: a particle class with methods to initialize itself, and update its own velocity and position; a swarm class with a method to iterates through all particles to call update functions, etc.
 
 #number of dimensions of problem
-dimensions = 200
+dimensions = 2
 
 #number of particles in swarm
-swarmSize = 100
+swarmSize = 5
 
 vmax = 100
 
@@ -96,7 +96,6 @@ def ring():
     
     # The modulus allows for wrapping (so the first item is neighbors with last)
     # Currently uses 3 if statements to check which among neighbors is best. 
-    # 
     
     for i in range(len(pBestVal)):
        if pBestVal[(i-1)%len(pBestVal)] < evaluate(pBestLocal[i]):
@@ -117,13 +116,7 @@ def move():
     global vel # So I can update velocity within the function
     global pos # For updating position
     
-    # Find out where the best value is currently
-    ordering = rankOrder(pBestVal)
 
-    for i in ordering:
-        if ordering[i] == 0:
-            best = pBest[i] # This will give the x,y coordinates of the best p value
-    
     # Random uniform variables between 0,1
     r1 = myPRNG.uniform(0,1)
     r2 = myPRNG.uniform(0,1)
@@ -132,18 +125,24 @@ def move():
     
     
     # The equation is broken up into 3 parts for ease of coding
-    e1 = phi1*r1*(np.subtract(best,pos))        #phi1*r1(Pi - Xi)
-    #e2 = phi2*r2*(np.subtract(pBestGlobal,pos)) #phi2*r2(Pg-Xi)
-    ring()
-    e2 = phi2*r2*(np.subtract(pBestLocal,pos)) #phi2*r2(Pg-Xi) # For local neiborhood structure
-    e3 = np.add(e1,e2)                          #phi1*r1(Pi - Xi) + phi2*r2(Pg-Xi)
+    
+    #phi1*r1(Pi - Xi)
+    e1 = phi1*r1*(np.subtract(pBest,pos))        
+    #phi2*r2(Pg-Xi) # For global best structure
+    e2 = phi2*r2*(np.subtract(pBestGlobal,pos)) 
+    #ring()
+    
+    #phi2*r2(Pg-Xi) # For local neighborhood structure
+    #e2 = phi2*r2*(np.subtract(pBestLocal,pos)) 
+    #phi1*r1(Pi - Xi) + phi2*r2(Pg-Xi)
+    e3 = np.add(e1,e2)                          
     
     # Updating the velocity
     vel = np.add(vel,e3)
     
     
-    
-    for i in range(len(vel)):           # Making sure velocity never goes above or below |vmax|
+    # Making sure velocity never goes above or below |vmax|
+    for i in range(len(vel)):           
         for j in range(len(vel[i])):
             if vel[i][j] > vmax:
                 vel[i][j] = vmax
@@ -168,11 +167,8 @@ def move():
 
 # Step 1 Initialize the swarm (done higher up)
 
-
-
-
 iterations = 0
-while iterations < 300:                                                              
+while iterations < 3000:                                                              
     
     
     # Step 2 Evaluate fitness of each particle
@@ -190,8 +186,8 @@ while iterations < 300:
             pBestGlobal = list(pBest[i])
 
     # Functions for plotting initial position and location after first move
-    """
-    if iterations == 0 or iterations == 1:  
+    
+    if iterations <= 1 and dimensions == 2:  
         x = []
         y = []
         for i in range(len(pos)):
@@ -202,11 +198,13 @@ while iterations < 300:
             plt.title("Initial location")
         else:
             plt.title("After first move")
+        plt.axhline(linewidth=1, color='grey')
+        plt.axvline(linewidth=1, color='grey')
         plt.ylabel("y")
         plt.xlabel("x")
         plt.scatter(x,y)
         plt.show()
-    """
+    
     
     # Step 4 Update velocity and position of each particle
     move()
@@ -216,7 +214,6 @@ while iterations < 300:
     iterations = iterations + 1
         
     
-    # Maybe stopping criterion can be if 90% of particles < 1 standard deviation away from mean, stop?
 
 print("Best Value is: ")
 print(evaluate(pBestGlobal))
